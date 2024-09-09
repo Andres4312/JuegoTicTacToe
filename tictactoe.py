@@ -1,6 +1,4 @@
-import math
 from copy import deepcopy
-import numpy as np
 
 X = "X"
 O = "O"
@@ -9,6 +7,9 @@ EMPTY = None
 def initial_state():
     """
     Retorna el estado inicial del tablero.
+
+    :return: Una lista de listas que representa el tablero vacío.
+    :rtype: list
     """
     return [[EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY],
@@ -16,10 +17,26 @@ def initial_state():
 
 # Funciones auxiliares para obtener las diagonales y columnas
 def get_diagonal(board):
+    """
+    Retorna las diagonales del tablero.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: Una lista con las dos diagonales del tablero.
+    :rtype: list
+    """
     return [[board[0][0], board[1][1], board[2][2]],
             [board[0][2], board[1][1], board[2][0]]]
 
 def get_columns(board):
+    """
+    Retorna las columnas del tablero.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: Una lista con las tres columnas del tablero.
+    :rtype: list
+    """
     columns = []
     for i in range(3):
         columns.append([row[i] for row in board])
@@ -27,12 +44,24 @@ def get_columns(board):
 
 # Función auxiliar para verificar si una fila tiene todos los elementos iguales
 def three_in_a_row(row):
+    """
+    Verifica si una fila tiene tres elementos iguales.
+
+    :param row: Una fila del tablero.
+    :type row: list
+    :return: True si todos los elementos de la fila son iguales y no son None, False en caso contrario.
+    :rtype: bool
+    """
     return True if row.count(row[0]) == 3 else False
 
 def player(board):
     """
     Retorna el jugador que tiene el siguiente turno en el tablero.
-    Cuenta el número de 'X' y 'O' para decidir.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: 'X' si es el turno de X, 'O' si es el turno de O.
+    :rtype: str
     """
     count_x = 0
     count_o = 0
@@ -47,6 +76,11 @@ def player(board):
 def actions(board):
     """
     Retorna el conjunto de todas las acciones posibles (i, j) disponibles en el tablero.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: Un conjunto de tuplas (i, j) que representan las posiciones vacías.
+    :rtype: set
     """
     action = set()
     for i, row in enumerate(board):
@@ -58,6 +92,14 @@ def actions(board):
 def result(board, action):
     """
     Retorna el tablero que resulta al hacer el movimiento (i, j) en el tablero.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :param action: La acción a realizar, una tupla (i, j).
+    :type action: tuple
+    :raises Exception: Si la posición (i, j) ya está ocupada.
+    :return: Un nuevo tablero con el movimiento realizado.
+    :rtype: list
     """
     i, j = action
     if board[i][j] != EMPTY:
@@ -70,7 +112,13 @@ def result(board, action):
 def winner(board):
     """
     Retorna el ganador del juego, si existe.
+
     Verifica todas las filas, columnas y diagonales.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: 'X' si el jugador X ha ganado, 'O' si el jugador O ha ganado, None si no hay ganador.
+    :rtype: str or None
     """
     rows = board + get_diagonal(board) + get_columns(board)
     for row in rows:
@@ -82,6 +130,11 @@ def winner(board):
 def terminal(board):
     """
     Retorna True si el juego ha terminado (ganador o empate), False en caso contrario.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: True si hay un ganador o si todas las casillas están llenas, False en caso contrario.
+    :rtype: bool
     """
     if winner(board) is not None:
         return True
@@ -92,6 +145,11 @@ def terminal(board):
 def utility(board):
     """
     Retorna 1 si X ha ganado, -1 si O ha ganado, 0 en caso contrario.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: 1 si X ha ganado, -1 si O ha ganado, 0 en caso de empate o si el juego no ha terminado.
+    :rtype: int
     """
     win = winner(board)
     if win == X:
@@ -103,6 +161,18 @@ def utility(board):
 
 # Poda Alfa-Beta: función Max-Value
 def max_alpha_beta_pruning(board, alpha, beta):
+    """
+    Realiza la poda Alfa-Beta para el jugador X (Maximiza).
+
+    :param board: El tablero de juego.
+    :type board: list
+    :param alpha: El valor alfa para la poda.
+    :type alpha: float
+    :param beta: El valor beta para la poda.
+    :type beta: float
+    :return: Un tuple con el valor de utilidad y la mejor acción.
+    :rtype: tuple
+    """
     if terminal(board):
         return utility(board), None
     value = float("-inf")
@@ -119,6 +189,18 @@ def max_alpha_beta_pruning(board, alpha, beta):
 
 # Poda Alfa-Beta: función Min-Value
 def min_alpha_beta_pruning(board, alpha, beta):
+    """
+    Realiza la poda Alfa-Beta para el jugador O (Minimiza).
+
+    :param board: El tablero de juego.
+    :type board: list
+    :param alpha: El valor alfa para la poda.
+    :type alpha: float
+    :param beta: El valor beta para la poda.
+    :type beta: float
+    :return: Un tuple con el valor de utilidad y la mejor acción.
+    :rtype: tuple
+    """
     if terminal(board):
         return utility(board), None
     value = float("inf")
@@ -137,7 +219,13 @@ def min_alpha_beta_pruning(board, alpha, beta):
 def minimax(board):
     """
     Retorna la acción óptima para el jugador actual en el tablero.
+
     Utiliza Poda Alfa-Beta para optimización.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: La mejor acción posible para el jugador actual.
+    :rtype: tuple or None
     """
     if terminal(board):
         return None
@@ -145,12 +233,18 @@ def minimax(board):
         return max_alpha_beta_pruning(board, float("-inf"), float("inf"))[1]
     else:
         return min_alpha_beta_pruning(board, float("-inf"), float("inf"))[1]
-
+    
 # Minimax básico sin Poda Alfa-Beta
 def basic_minimax(board):
     """
     Algoritmo Minimax básico sin Poda Alfa-Beta.
+
     Explora todo el árbol de juego sin poda.
+
+    :param board: El tablero de juego.
+    :type board: list
+    :return: Un tuple con el valor de utilidad y la mejor acción.
+    :rtype: tuple
     """
     if terminal(board):
         return utility(board), None
